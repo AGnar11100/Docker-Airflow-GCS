@@ -1,20 +1,21 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, split
+from config.secret import gcs_bucket_raw, gcs_bucket_transform
 
 # Initialize Spark session
 spark = SparkSession.builder.appName("DataTransform").getOrCreate()
 
 # Read the USPS data
-zipcounty_df = spark.read.csv('gs://ca-registered-vehicles-raw_data_bucket/ZIP-COUNTY-FIPS_2021.csv', header=True)
+zipcounty_df = spark.read.csv(f'gs://{gcs_bucket_raw}/ZIP-COUNTY-FIPS_2021.csv', header=True)
 
 # List of URLs for the vehicle fuel type data
 data_urls = [
-    'gs://ca-registered-vehicles-raw_data_bucket/0_vehicle-fuel-type-count-by-zip-code-20231.csv',
-    'gs://ca-registered-vehicles-raw_data_bucket/1_vehicle-fuel-type-count-by-zip-code-2022.csv',
-    'gs://ca-registered-vehicles-raw_data_bucket/2_vehicle-fuel-type-count-by-zip-code-2022.csv',
-    'gs://ca-registered-vehicles-raw_data_bucket/3_vehicle-fuel-type-count-by-zip-code-2021.csv',
-    'gs://ca-registered-vehicles-raw_data_bucket/4_vehicle-count-as-of-1-1-2020.csv',
-    'gs://ca-registered-vehicles-raw_data_bucket/5_vehicle-fuel-type-count-by-zip-code.csv'
+    f'gs://{gcs_bucket_raw}/0_vehicle-fuel-type-count-by-zip-code-20231.csv',
+    f'gs://{gcs_bucket_raw}/1_vehicle-fuel-type-count-by-zip-code-2022.csv',
+    f'gs://{gcs_bucket_raw}/2_vehicle-fuel-type-count-by-zip-code-2022.csv',
+    f'gs://{gcs_bucket_raw}/3_vehicle-fuel-type-count-by-zip-code-2021.csv',
+    f'gs://{gcs_bucket_raw}/4_vehicle-count-as-of-1-1-2020.csv',
+    f'gs://{gcs_bucket_raw}/5_vehicle-fuel-type-count-by-zip-code.csv'
 ]
 
 # Read all the vehicle fuel type data and combine into one DataFrame
@@ -68,6 +69,6 @@ zip_to_county_udf = udf(map_zip_to_county, StringType())
 fueltype_df = fueltype_df.withColumn('County', zip_to_county_udf(col('ZIP_Code')))
 
 # Write the transformed data to GCS
-fueltype_df.write.csv('gs://ca-registered-vehicles-transformed_data_bucket/transformed_data/', header=True)
+fueltype_df.write.csv(f'gs://{gcs_bucket_transform}/transformed_data/', header=True)
 
 spark.stop()
