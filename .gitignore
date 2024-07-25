@@ -1,0 +1,9 @@
+/config
+/dags/__pycache__
+/dags/config/__pycache__
+/dags/config/secret.py
+/dags/airflow-docker-age-17d71a9bbc05.json
+/dags/create_gcs_bucket.py
+/dags/pyoptest.py
+/logs
+/plugins
